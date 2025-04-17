@@ -1,0 +1,427 @@
+---
+title: "Multiple Regression Project"
+author: "Kabin Devkota, Nishan Khanal and Udita Bista"
+date: "4/15/2025"
+output: word_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+This analysis focuses on a data set from Kaggle that describes the nutrition facts for McDonald's Menu. This dataset provides a nutrition analysis of every menu item on the US McDonald's menu, including breakfast, beef burgers, chicken and fish sandwiches, fries, salads, soda, coffee and tea, milkshakes, and desserts.
+The data for this analysis consists of response variable y = $Calories$ and fifteen explanatory variables, 
+$Fat (g)$ = x1
+$Carb. (g)$ = x2
+$Fiber (g)$ = x3
+$Protein$ = x4
+$Sodium$ = x5
+
+
+QUESTION OF INTEREST: The researchers would like to develop a model for the calories contained in a meal using all fifteen
+explanatory variables or some subset of the fifteen explanatory variables. 
+
+## Correlation Coefficients
+
+Since we are looking at linear relationships between the outcome variable (calories) with each explanatory variable, it may be of interest to determine the correlation coefficients between the outcome variable with each explanatory variable. 
+
+```{r}
+
+# library(ggplot2)
+library(lmtest, pos=4)
+library(corrplot)
+
+# reading the data from the csv file which has some values containing comma enclosed by double quotes
+mcdonalds = read.csv("Mcdonalds_menu.csv",header=TRUE,quote="\"",sep=",")
+head(mcdonalds)
+
+# getting the column names
+colnames(mcdonalds)
+
+# cleaning column names: replace spaces, %, parentheses, etc.
+colnames(mcdonalds) <- make.names(colnames(mcdonalds))
+
+# dropping the columns that is irrelevant or redundant for the analysis
+cols_to_drop <- c(
+  "Category",
+  "Calories.from.Fat",
+  "Total.Fat....Daily.Value.",
+  "Saturated.Fat....Daily.Value.",
+  "Cholesterol....Daily.Value.",
+  "Sodium....Daily.Value.",
+  "Carbohydrates....Daily.Value.",
+  "Dietary.Fiber....Daily.Value."
+)
+mcdonalds <- mcdonalds[, !(names(mcdonalds) %in% cols_to_drop)]
+
+
+# Daily values (units must match dataset)
+daily_values <- c(
+  "Vitamin.A" = 900,    # mcg RAE
+  "Vitamin.C" = 90,     # mg
+  "Calcium" = 1300,     # mg
+  "Iron" = 18           # mg
+)
+
+# Map of columns to their associated nutrients
+conversion_map <- list(
+  "Vitamin.A....Daily.Value." = "Vitamin.A",
+  "Vitamin.C....Daily.Value." = "Vitamin.C",
+  "Calcium....Daily.Value." = "Calcium",
+  "Iron....Daily.Value." = "Iron"
+)
+
+
+
+# For each %DV column, calculate the absolute value and overwrite the same column with absolute value
+for (dv_col in names(conversion_map)) {
+  nutrient <- conversion_map[[dv_col]]
+  
+  if (dv_col %in% names(mcdonalds)) {
+    # Create a new column name or overwrite the existing one
+    new_col <- nutrient  # Replace the DV column with nutrient name only
+    mcdonalds[[new_col]] <- (mcdonalds[[dv_col]] / 100) * daily_values[[nutrient]]
+  }
+}
+
+# Extract numeric part before "oz" or "fl oz" from the Serving Size column
+mcdonalds$Serving.Size.Oz <- as.numeric(sub("([0-9.]+)\\s*(fl\\s*)?oz.*", "\\1", mcdonalds$Serving.Size))
+head(mcdonalds)
+
+
+# dropping the data points with null values that would be a hindrance for the analysis
+mcdonalds <- na.omit(mcdonalds)
+
+head(mcdonalds)
+
+# Identify all columns to normalize (exclude Item and Serving Size Oz)
+cols_to_normalize <- setdiff(names(mcdonalds), c("Item", "Serving.Size", "Serving.Size.Oz"))
+
+# Convert values to per oz
+mcdonalds[cols_to_normalize] <- lapply(mcdonalds[cols_to_normalize], function(col) col / mcdonalds$Serving.Size.Oz)
+
+# dropping the remaining columns containing daily value percentages and serving size
+cols_to_drop <- c(
+  "Vitamin.A....Daily.Value.",
+  "Vitamin.C....Daily.Value.",
+  "Calcium....Daily.Value.",
+  "Iron....Daily.Value.",
+  "Serving.Size"
+)
+mcdonalds <- mcdonalds[, !(names(mcdonalds) %in% cols_to_drop)]
+
+
+# saving all the column names except "Item"
+col_names <- setdiff(names(mcdonalds), "Item")
+
+
+# creating new names: y for Calories, x1, x2, ... for the rest
+new_names <- c("y", paste0("x", seq_along(col_names[-which(col_names == "Calories")])))
+
+# creating a named vector to rename the columns
+name_map <- setNames(new_names, c("Calories", col_names[col_names != "Calories"]))
+
+# renaming the columns
+names(mcdonalds)[names(mcdonalds) %in% names(name_map)] <- name_map[names(mcdonalds)[names(mcdonalds) %in% names(name_map)]]
+
+
+# saving all the column names except "Item"
+col_names <- setdiff(names(mcdonalds), "Item")
+
+corr_matrix <- cor(mcdonalds[,col_names], use="everything")
+round(corr_matrix, 3)
+
+corrplot.mixed(corr_matrix, lower.col = "black", number.cex = .7, upper = "ellipse")
+
+```
+
+<br>
+
+## Multiple Regression
+
+At this point we have interest building for calories using some combination of the explanatory variables. Using multiple regression one initially build a model with all of the possible explanatory variables.  Below is some R output for this Multiple Linear Regression (MLR) analysis. 
+
+<br>
+
+### General Form for a Multiple Regression Model 
+ 
+<br>
+
+<br>
+
+<br>
+ 
+```{r}
+
+model.1 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x12+x13+x14, data=mcdonalds)
+
+summary(model.1)
+
+```
+ 
+### Equation of the Model with all of the Explanatory Variables
+
+(Note: This is referred to at the Full Model)
+
+<br>
+
+<br>
+
+
+
+### Coefficient of Determination
+
+<br>
+
+Interpretation: **99.96** \% of the variability in calories is accounted for in this model, (i.e., is accounted for in the model between calories and the fourteen explanatory variables).
+
+### Test for the Significance of the Model:
+
+
+Ho:  None of the explanatory variables is a linear predictor of calories  (i.e., the model is not significant or is not useful in predicting the response)
+
+<br>
+
+Ha:  At least one of the explanatory variables is a significant linear predictor of calories  (i.e., the model is significant or at least some portion of the model is useful in predicting the response)
+
+
+<br>
+
+Test statistic: F* =  4.563e+04
+
+<br>
+
+P-value: < 2.2e-16
+
+<br>
+
+Conclusion: Reject Ho in favor of Ha. There is sufficient evidence to conclude that at least one of the explanatory variables is a significant linear predictor of calories  (i.e., the model is significant or at least some portion of the model is useful in predicting the response)
+
+<br>
+
+<br>
+
+
+### Further Analysis
+
+Since at least one of the independent variables is significant, we do further analysis to determine which one(s) is/are significant.
+
+
+<br>
+
+### Test for an Individual Predictor in this Model: 
+
+
+Ho:  With x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x13, and x14 in the model, x12 is not a linear predictor of y
+
+Ha:  With x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x13, and x14 in the model, x12 is a significant linear predictor of y
+ 
+
+<br>
+
+Test statistic: t* = -0.284
+
+<br>
+
+P-value: 0.77653  
+
+<br>
+
+Conclusion: Fail to reject Ho. There is insufficient evidence to conclude that with x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x13, and x14 in the model, x12 is not a linear predictor of y
+
+
+<br>
+
+<br>
+
+
+Notice that x12 has the largest p-value and thus is the least significant. We could remove it from the model and rerun the analysis. Then we could test for significance of another independent variable. We could continue this process until only significant variables are left. This method for identifying the best model is referred to as **Backward Selection**.
+
+Some selected output for the **Backward Selection** procedure:
+
+```{r}
+
+model.2 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x13+x14, data=mcdonalds)
+
+summary(model.2)
+
+```
+<br>
+
+
+```{r}
+
+model.3 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x14, data=mcdonalds)
+
+summary(model.3)
+
+```
+<br>
+
+
+```{r}
+
+model.4 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10+x11+x14, data=mcdonalds)
+
+summary(model.4)
+
+```
+
+```{r}
+
+model.5 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10+x11, data=mcdonalds)
+
+summary(model.5)
+
+```
+
+```{r}
+
+model.6 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10, data=mcdonalds)
+
+summary(model.6)
+
+```
+
+
+```{r}
+
+model.7 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9, data=mcdonalds)
+
+summary(model.7)
+
+```
+
+```{r}
+
+model.8 <- lm(y~x1+x2+x4+x6+x7+x8+x9, data=mcdonalds)
+
+summary(model.8)
+
+```
+
+
+
+### Final Model using Backward Selection: 
+
+<br>
+
+<br>
+
+<br>
+
+
+
+### Coefficient of Determination
+
+<br>
+
+(Assessing the fit of the model)  99.96 % of the variability in the calories is accounted for in this multiple linear regression model.
+
+### Prediction: 
+
+For a sample that has a biological oxygen demand of 1.04, a total Kjeldahl nitrogen of 0.196, a total solid of 5.639, a total volatile solid of 0.0817, and a chemical oxygen demand of 6.127, we predict the log(oxygen) demand  to be _________________. 
+
+<br>
+
+### Estimation: 
+
+For samples that have biological oxygen demands of 1.04, total Kjeldahl nitrogen values of 0.196, total solids of 5.639, total volatile solids of 0.0817, and chemical oxygen demands of 6.127, we predict the average log(oxygen) demand  to be _________________.
+
+<br>
+
+### Interpretation of Partial Slopes (B-weights or Coefficients):
+
+For a fixed total solid, as the chemical oxygen demand increases by 1, the predicted log(oxygen) demand  increases / decreases by ____________ .
+
+<br>
+
+We are 95% confident that for a fixed total solid, as the chemical oxygen demand increases by 1, the predicted log(oxygen) demand  increases / decreases  between _______________  and ______________.
+
+<br>
+
+```{r}
+
+confint(model.8, level=0.95)
+
+```
+
+
+### Residual Analysis 
+
+This is checking the assumptions that need to be satisfied before it is appropriate to perform inference from a multiple regression model. 
+
+1. The random errors are independent of each other.
+
+2. The random errors are normally distributed
+
+3. The random errors have constant variance (homoscedasticity)
+
+(Note: There is a lot more to residual analysis than just these things, but to keep things focused on the inferential aspects of linear regression we will just do this quick check.)
+
+<br>
+
+```{r}
+
+bptest(y~x1+x2+x4+x6+x7+x8+x9, varformula = ~ fitted.values(model.8), studentize=TRUE, data=mcdonalds)
+#oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
+plot(model.8)
+#par(oldpar)
+
+```
+
+```{r}
+
+# Examination of the distribution of the residuals
+
+boxplot(model.8$residuals, col="lightblue", horizontal = TRUE)
+
+shapiro.test(model.8$residuals)
+
+```
+
+
+Ho:
+
+Ha:
+ 
+Test statistic:
+
+P-value:
+
+Conclusion (at the .05 level):
+
+
+
+
+## Re-running the Model; Omitting Day 0
+
+```{r}
+
+Dairy2 <- Dairy[-1,]
+
+model.6 <- lm(y~x3+x5, data=Dairy2)
+summary(model.6)
+
+model.7 <- lm(y~x3, data=Dairy2)
+summary(model.7)
+
+bptest(y ~ x3, varformula = ~ fitted.values(model.7), 
+       studentize=TRUE, data=Dairy2)
+#oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
+plot(model.7)
+#par(oldpar)
+
+
+boxplot(model.7$residuals, col="lightblue", horizontal = TRUE)
+
+shapiro.test(model.7$residuals)
+
+
+```
+
+
+
+
