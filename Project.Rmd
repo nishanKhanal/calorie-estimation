@@ -2,7 +2,7 @@
 title: "Multiple Regression Project"
 author: "Kabin Devkota, Nishan Khanal and Udita Bista"
 date: "4/15/2025"
-output: word_document
+output: pdf_document
 ---
 
 
@@ -12,35 +12,52 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 This analysis focuses on a data set from Kaggle that describes the nutrition facts for McDonald's Menu. This dataset provides a nutrition analysis of every menu item on the US McDonald's menu, including breakfast, beef burgers, chicken and fish sandwiches, fries, salads, soda, coffee and tea, milkshakes, and desserts.
-The data for this analysis consists of response variable $y = Calories$ and following explanatory variables, 
+The data for this analysis consists of response variable $y = Calories$ and following explanatory variables:
+ 
 $Category$ 
+
 $item$
+
 $Serving Size$
+
 $Total Fat$
-$Total Fat (% Daily Value)$
+
+$Total Fat (\% Daily Value)$
+
 $Saturated Fat$
-$Saturated Fat (% Daily Value)$
+
+$Saturated Fat (\% Daily Value)$
+
 $Trans Fat$
+
 $Cholesterol$
-$Cholesterol (% Daily Value)$
+
+$Cholesterol (\% Daily Value)$
+
 $Sodium$
-$Sodium (% Daily Value)$
+
+$Sodium (\% Daily Value)$
+
 $Carbohydrates$
-$Carbohydrates (% Daily Value)$
+
+$Carbohydrates (\% Daily Value)$
+
 $Dietary Fiber$
-$Dietary Fiber (% Daily Value)$
+
+$Dietary Fiber (\% Daily Value)$
+
 $Sugars$
+
 $Protein$
-$Vitamin A (% Daily Value)$
-$Vitamin C (% Daily Value)$
-$Calcium (% Daily Value)$
-$Iron (% Daily Value)$
 
+$Vitamin A (\% Daily Value)$
 
+$Vitamin C (\% Daily Value)$
 
-## Correlation Coefficients
+$Calcium (\% Daily Value)$
 
-Since we are looking at linear relationships between the outcome variable (calories) with each explanatory variable, it may be of interest to determine the correlation coefficients between the outcome variable with each explanatory variable. 
+$Iron (\% Daily Value)$
+
 
 ```{r}
 
@@ -76,7 +93,12 @@ mcdonalds <- mcdonalds[, !(names(mcdonalds) %in% cols_to_drop)]
 
 
 
-**TALA KO CODE MA K GAREKO EXPLAIN**
+Now, we are converting the % Daily Value columns to absolute values. The daily values are based on a 2000 calorie diet, and the conversion is done using the following formula:
+$$
+\text{Absolute Value} = \left(\frac{\text{Percentage Daily Value}}{100}\right) \times \text{Daily Value}
+$$
+where the daily values are as follows:
+
 
 ```{r}
 
@@ -145,20 +167,36 @@ col_names <- setdiff(names(mcdonalds), "Item")
 col_names
 ```
 After the completion of the data preprocessing part, our dataset has been narrowed down to one response variable $calories$ and fourteen explanatory variables:
+
 1. x1 = $Total Fat$
+
 2. x2 = $Saturated Fat$
+
 3. x3 = $Trans Fat$
+
 4. x4 = $Cholestrol$
+
 5. x5 = $Sodium$
+
 6. x6 = $Carbohydrates$
+
 7. x7 = $Dietary Fiber$
+
 8. x8 = $Sugars$
+
 9. x9 = $Protein$
+
 10. x10 = $Vitamin A$
+
 11. x11 = $Vitamin C$ 
+
 12. x12 = $Calcium$
+
 13. x13 = $Iron$
-14. x14 = $ Serving size oz$
+
+14. x14 = $Serving.size.oz$
+
+
 
 ```{r}
 
@@ -174,7 +212,14 @@ names(mcdonalds)[names(mcdonalds) %in% names(name_map)] <- name_map[names(mcdona
 
 # saving all the column names except "Item"
 col_names <- setdiff(names(mcdonalds), "Item")
+```
 
+
+
+## Correlation Coefficients
+
+Since we are looking at linear relationships between the outcome variable (calories) with each explanatory variable, it may be of interest to determine the correlation coefficients between the outcome variable with each explanatory variable. 
+```{r}
 corr_matrix <- cor(mcdonalds[,col_names], use="everything")
 round(corr_matrix, 3)
 
@@ -200,7 +245,7 @@ $$
  
 ```{r}
 
-model.1 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x12+x13+x14, data=mcdonalds)
+model.1 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x12+x13, data=mcdonalds)
 
 summary(model.1)
 
@@ -211,7 +256,7 @@ summary(model.1)
 (Note: This is referred to at the Full Model)
 
 $$
-Y = 0.129 + 8.878 X_1 + 0.357 X_2 + 2.271 X_3 -0.012300X_4+ \dots -0.008811 X_14
+Y = -0.054 + 8.882 X_1 + 0.357 X_2 + 2.098 X_3 - 0.013 X_4+ \dots - 0.163 X_{13}
 $$
 <br>
 
@@ -219,7 +264,7 @@ $$
 
 <br>
 
-Interpretation: **99.96** \% of the variability in calories is accounted for in this model, (i.e., is accounted for in the model between calories and the fourteen explanatory variables).
+Interpretation: **99.96** \% of the variability in calories is accounted for in this model, (i.e., is accounted for in the model between calories and the thirteen explanatory variables).
 
 ### Test for the Significance of the Model:
 
@@ -254,22 +299,22 @@ Since at least one of the independent variables is significant, we do further an
 ### Test for an Individual Predictor in this Model: 
 
 
-Ho:  With x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x13, and x14 in the model, x12 is not a linear predictor of y
+Ho:  With x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, and x13 in the model, x12 is not a linear predictor of y
 
-Ha:  With x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x13, and x14 in the model, x12 is a significant linear predictor of y
+Ha:  With x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, and x13 in the model, x12 is a significant linear predictor of y
  
 
 <br>
 
-Test statistic: t* = -0.284
+Test statistic: t* = -0.128
 
 <br>
 
-P-value: 0.77653  
+P-value: 0.89828  
 
 <br>
 
-Conclusion: Fail to reject Ho. There is insufficient evidence to conclude that with x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x13, and x14 in the model, x12 is not a linear predictor of y
+Conclusion: Fail to reject Ho. There is insufficient evidence to conclude that with x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, and x13 in the model, x12 is not a linear predictor of y
 
 <br>
 
@@ -280,7 +325,7 @@ Some selected output for the **Backward Selection** procedure:
 
 ```{r}
 
-model.2 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x13+x14, data=mcdonalds)
+model.2 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x13, data=mcdonalds)
 
 summary(model.2)
 
@@ -290,7 +335,7 @@ summary(model.2)
 
 ```{r}
 
-model.3 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x14, data=mcdonalds)
+model.3 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11, data=mcdonalds)
 
 summary(model.3)
 
@@ -300,7 +345,7 @@ summary(model.3)
 
 ```{r}
 
-model.4 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10+x11+x14, data=mcdonalds)
+model.4 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10+x11, data=mcdonalds)
 
 summary(model.4)
 
@@ -308,7 +353,7 @@ summary(model.4)
 
 ```{r}
 
-model.5 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10+x11, data=mcdonalds)
+model.5 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10, data=mcdonalds)
 
 summary(model.5)
 
@@ -316,7 +361,7 @@ summary(model.5)
 
 ```{r}
 
-model.6 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10, data=mcdonalds)
+model.6 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9, data=mcdonalds)
 
 summary(model.6)
 
@@ -325,17 +370,9 @@ summary(model.6)
 
 ```{r}
 
-model.7 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9, data=mcdonalds)
+model.7 <- lm(y~x1+x2+x4+x6+x7+x8+x9, data=mcdonalds)
 
 summary(model.7)
-
-```
-
-```{r}
-
-model.8 <- lm(y~x1+x2+x4+x6+x7+x8+x9, data=mcdonalds)
-
-summary(model.8)
 
 ```
 
@@ -365,7 +402,7 @@ For a sample that has a total fat (x1) of 20, a saturated fat (x2) of 11, a chol
 
 ### Estimation: 
 
-For a sample that has a total fat (x1) of 20, a saturated fat (x2) of 11, a cholestrol (x4) of 35, a carbohydrates (x6) of 36, a dietary fiber (x7) of 2 , a sugar (x8) of 3 and a protein (x9) of 20, we predict the average calories (y)  to be 406.386. 
+For samples that have a total fat (x1) of 20, a saturated fat (x2) of 11, a cholestrol (x4) of 35, a carbohydrates (x6) of 36, a dietary fiber (x7) of 2 , a sugar (x8) of 3 and a protein (x9) of 20, we predict the average calories (y)  to be 406.386. 
 
 <br>
 
@@ -373,18 +410,49 @@ For a sample that has a total fat (x1) of 20, a saturated fat (x2) of 11, a chol
 
 For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), as the protein increases by 1, the calories increases by 3.884.
 
+For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed protein (x9), as the sugar increases by 1, the calories decreases by 0.167.
+
+
+For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed protein (x9), and a fixed sugar (x8), as the dietary fiber increases by 1, the calories decreases by 0.909.
+
+
+For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the carbohydrates increases by 1, the calories increases by 4.137.
+
+
+For a fixed total fat (x1), a fixed saturated fat (x2), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the cholestrol increases by 1, the calories decreases by 0.014.
+
+For a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the total fat increases by 1, the calories increases by 8.872.
+
+
+For a fixed total fat (x1), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), and a fixed protein (x9) as the saturated fat increases by 1, the calories increases by 0.472.
+
 <br>
 
-We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), as the protein increases by 1, the calories increases between 3.79 and 3.97
 
-<br>
+### Confidence Intervals for the Coefficients
 
 ```{r}
 
-confint(model.8, level=0.95)
+confint(model.7, level=0.95)
 
 ```
 
+
+We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), as the protein increases by 1, the calories increases between 3.795 and 3.973
+
+We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed protein (x9), as the sugar increases by 1, the calories decreases between -0.249 and -0.086
+
+We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), and a fixed sugar (x8), as the dietary fiber increases by 1, the calories increases between -1.463 and -0.357
+
+We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed protein (x9), a fixed dietary fiber (x7), and a fixed sugar (x8), as the carbohydrates increases by 1, the calories increases between 4.067 and 4.207
+
+We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the cholestrol increases by 1, the calories decreases between -0.023 and -0.004
+
+We are 95% confident that for a fixed total fat (x1), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the saturated fat increases by 1, the calories increases between 0.165 and 0.778
+
+We are 95% confident that for a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the total fat increases by 1, the calories increases between 8.713 and 9.031
+
+<br>
 
 ### Residual Analysis 
 
@@ -402,9 +470,9 @@ This is checking the assumptions that need to be satisfied before it is appropri
 
 ```{r}
 
-bptest(y~x1+x2+x4+x6+x7+x8+x9, varformula = ~ fitted.values(model.8), studentize=TRUE, data=mcdonalds)
+bptest(y~x1+x2+x4+x6+x7+x8+x9, varformula = ~ fitted.values(model.7), studentize=TRUE, data=mcdonalds)
 #oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
-plot(model.8)
+plot(model.7)
 #par(oldpar)
 
 ```
@@ -413,9 +481,9 @@ plot(model.8)
 
 # Examination of the distribution of the residuals
 
-boxplot(model.8$residuals, col="lightblue", horizontal = TRUE)
+boxplot(model.7$residuals, col="lightblue", horizontal = TRUE)
 
-shapiro.test(model.8$residuals)
+shapiro.test(model.7$residuals)
 
 ```
 
@@ -432,7 +500,5 @@ Conclusion (at the .05 level): Reject Ho in favor of Ha. There is sufficient evi
 
 
 
-In multiple linear regression, one key assumption is that the residuals (errors) should be normally distributed. However, in our case, residuals do not follow a normal distribution.    **COMPLETE THIS CONCLUSION**
-
-
-
+In multiple linear regression, one key assumption is that the residuals (errors) should be normally distributed. However, in our case, residuals do not follow a normal distribution. This suggests that our model may not be a good fit for the Macdonald's menu data.
+We could explore alternative regression techniques or include interaction terms in the model to better capture the relationships in the data.
