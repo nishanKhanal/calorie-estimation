@@ -12,16 +12,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 This analysis focuses on a data set from Kaggle that describes the nutrition facts for McDonald's Menu. This dataset provides a nutrition analysis of every menu item on the US McDonald's menu, including breakfast, beef burgers, chicken and fish sandwiches, fries, salads, soda, coffee and tea, milkshakes, and desserts.
-The data for this analysis consists of response variable y = $Calories$ and fifteen explanatory variables, 
-$Fat (g)$ = x1
-$Carb. (g)$ = x2
-$Fiber (g)$ = x3
-$Protein$ = x4
-$Sodium$ = x5
+The data for this analysis consists of response variable $y = Calories$ and following explanatory variables, 
+$Category$ 
+$item$
+$Serving Size$
+$Total Fat$
+$Total Fat (% Daily Value)$
+$Saturated Fat$
+$Saturated Fat (% Daily Value)$
+$Trans Fat$
+$Cholesterol$
+$Cholesterol (% Daily Value)$
+$Sodium$
+$Sodium (% Daily Value)$
+$Carbohydrates$
+$Carbohydrates (% Daily Value)$
+$Dietary Fiber$
+$Dietary Fiber (% Daily Value)$
+$Sugars$
+$Protein$
+$Vitamin A (% Daily Value)$
+$Vitamin C (% Daily Value)$
+$Calcium (% Daily Value)$
+$Iron (% Daily Value)$
 
 
-QUESTION OF INTEREST: The researchers would like to develop a model for the calories contained in a meal using all fifteen
-explanatory variables or some subset of the fifteen explanatory variables. 
 
 ## Correlation Coefficients
 
@@ -42,7 +57,9 @@ colnames(mcdonalds)
 
 # cleaning column names: replace spaces, %, parentheses, etc.
 colnames(mcdonalds) <- make.names(colnames(mcdonalds))
-
+```
+Out of these 22 explanatory variables, some of the variables like "category", Total.Fat....Daily.Value.", "Cholesterol....Daily.Value.", etc are redundant.Therefore, we are dropping them from the analysis to avoid multicollinearity and improve model efficiency.
+```{r}
 # dropping the columns that is irrelevant or redundant for the analysis
 cols_to_drop <- c(
   "Category",
@@ -55,7 +72,13 @@ cols_to_drop <- c(
   "Dietary.Fiber....Daily.Value."
 )
 mcdonalds <- mcdonalds[, !(names(mcdonalds) %in% cols_to_drop)]
+```
 
+
+
+**TALA KO CODE MA K GAREKO EXPLAIN**
+
+```{r}
 
 # Daily values (units must match dataset)
 daily_values <- c(
@@ -73,8 +96,6 @@ conversion_map <- list(
   "Iron....Daily.Value." = "Iron"
 )
 
-
-
 # For each %DV column, calculate the absolute value and overwrite the same column with absolute value
 for (dv_col in names(conversion_map)) {
   nutrient <- conversion_map[[dv_col]]
@@ -85,7 +106,10 @@ for (dv_col in names(conversion_map)) {
     mcdonalds[[new_col]] <- (mcdonalds[[dv_col]] / 100) * daily_values[[nutrient]]
   }
 }
+```
 
+The values in the serving size column contain both numbers and units (e.g., "15 oz"). In this step, we are extracting only the numeric part and discarding the unit, so "15 oz" becomes just 15.
+```{r}
 # Extract numeric part before "oz" or "fl oz" from the Serving Size column
 mcdonalds$Serving.Size.Oz <- as.numeric(sub("([0-9.]+)\\s*(fl\\s*)?oz.*", "\\1", mcdonalds$Serving.Size))
 head(mcdonalds)
@@ -115,7 +139,28 @@ mcdonalds <- mcdonalds[, !(names(mcdonalds) %in% cols_to_drop)]
 
 # saving all the column names except "Item"
 col_names <- setdiff(names(mcdonalds), "Item")
+```
 
+```{r}
+col_names
+```
+After the completion of the data preprocessing part, our dataset has been narrowed down to one response variable $calories$ and fourteen explanatory variables:
+1. x1 = $Total Fat$
+2. x2 = $Saturated Fat$
+3. x3 = $Trans Fat$
+4. x4 = $Cholestrol$
+5. x5 = $Sodium$
+6. x6 = $Carbohydrates$
+7. x7 = $Dietary Fiber$
+8. x8 = $Sugars$
+9. x9 = $Protein$
+10. x10 = $Vitamin A$
+11. x11 = $Vitamin C$ 
+12. x12 = $Calcium$
+13. x13 = $Iron$
+14. x14 = $ Serving size oz$
+
+```{r}
 
 # creating new names: y for Calories, x1, x2, ... for the rest
 new_names <- c("y", paste0("x", seq_along(col_names[-which(col_names == "Calories")])))
@@ -141,15 +186,15 @@ corrplot.mixed(corr_matrix, lower.col = "black", number.cex = .7, upper = "ellip
 
 ## Multiple Regression
 
-At this point we have interest building for calories using some combination of the explanatory variables. Using multiple regression one initially build a model with all of the possible explanatory variables.  Below is some R output for this Multiple Linear Regression (MLR) analysis. 
+At this point we have interest in building a model for calories using some combination of the explanatory variables. Using multiple regression one initially build a model with all of the possible explanatory variables. Below is some R output for this Multiple Linear Regression (MLR) analysis. 
 
 <br>
 
 ### General Form for a Multiple Regression Model 
- 
-<br>
 
-<br>
+$$
+Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 +\dots + \beta_{14} X_{14}
+$$
 
 <br>
  
@@ -165,11 +210,10 @@ summary(model.1)
 
 (Note: This is referred to at the Full Model)
 
+$$
+Y = 0.129 + 8.878 X_1 + 0.357 X_2 + 2.271 X_3 -0.012300X_4+ \dots -0.008811 X_14
+$$
 <br>
-
-<br>
-
-
 
 ### Coefficient of Determination
 
@@ -178,7 +222,6 @@ summary(model.1)
 Interpretation: **99.96** \% of the variability in calories is accounted for in this model, (i.e., is accounted for in the model between calories and the fourteen explanatory variables).
 
 ### Test for the Significance of the Model:
-
 
 Ho:  None of the explanatory variables is a linear predictor of calories  (i.e., the model is not significant or is not useful in predicting the response)
 
@@ -201,13 +244,10 @@ Conclusion: Reject Ho in favor of Ha. There is sufficient evidence to conclude t
 
 <br>
 
-<br>
-
 
 ### Further Analysis
 
 Since at least one of the independent variables is significant, we do further analysis to determine which one(s) is/are significant.
-
 
 <br>
 
@@ -230,9 +270,6 @@ P-value: 0.77653
 <br>
 
 Conclusion: Fail to reject Ho. There is insufficient evidence to conclude that with x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x13, and x14 in the model, x12 is not a linear predictor of y
-
-
-<br>
 
 <br>
 
@@ -306,9 +343,9 @@ summary(model.8)
 
 ### Final Model using Backward Selection: 
 
-<br>
-
-<br>
+$$
+Y = -0.049+ 8.872 X_1 + 0.472 X_2 -0.014 X_4 + 4.137 X_6 - 0.909 X_7 -0.167 X_8 + 3.884 X_9
+$$
 
 <br>
 
@@ -322,23 +359,23 @@ summary(model.8)
 
 ### Prediction: 
 
-For a sample that has a biological oxygen demand of 1.04, a total Kjeldahl nitrogen of 0.196, a total solid of 5.639, a total volatile solid of 0.0817, and a chemical oxygen demand of 6.127, we predict the log(oxygen) demand  to be _________________. 
+For a sample that has a total fat (x1) of 20, a saturated fat (x2) of 11, a cholestrol (x4) of 35, a carbohydrates (x6) of 36, a dietary fiber (x7) of 2 , a sugar (x8) of 3 and a protein (x9) of 20, we predict the calories (y)  to be 406.386. 
 
 <br>
 
 ### Estimation: 
 
-For samples that have biological oxygen demands of 1.04, total Kjeldahl nitrogen values of 0.196, total solids of 5.639, total volatile solids of 0.0817, and chemical oxygen demands of 6.127, we predict the average log(oxygen) demand  to be _________________.
+For a sample that has a total fat (x1) of 20, a saturated fat (x2) of 11, a cholestrol (x4) of 35, a carbohydrates (x6) of 36, a dietary fiber (x7) of 2 , a sugar (x8) of 3 and a protein (x9) of 20, we predict the average calories (y)  to be 406.386. 
 
 <br>
 
 ### Interpretation of Partial Slopes (B-weights or Coefficients):
 
-For a fixed total solid, as the chemical oxygen demand increases by 1, the predicted log(oxygen) demand  increases / decreases by ____________ .
+For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), as the protein increases by 1, the calories increases by 3.884.
 
 <br>
 
-We are 95% confident that for a fixed total solid, as the chemical oxygen demand increases by 1, the predicted log(oxygen) demand  increases / decreases  between _______________  and ______________.
+We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), as the protein increases by 1, the calories increases between 3.79 and 3.97
 
 <br>
 
@@ -383,45 +420,19 @@ shapiro.test(model.8$residuals)
 ```
 
 
-Ho:
+Ho: The residuals follow a normal distribution
 
-Ha:
+Ha: The residuals do not follow a normal distribution
  
-Test statistic:
+Test statistic: W* =  0.94438
 
-P-value:
+P-value: 2.781e-08
 
-Conclusion (at the .05 level):
-
-
+Conclusion (at the .05 level): Reject Ho in favor of Ha. There is sufficient evidence to conclude that the residuals do not follow a normal distribution.
 
 
-## Re-running the Model; Omitting Day 0
 
-```{r}
-
-Dairy2 <- Dairy[-1,]
-
-model.6 <- lm(y~x3+x5, data=Dairy2)
-summary(model.6)
-
-model.7 <- lm(y~x3, data=Dairy2)
-summary(model.7)
-
-bptest(y ~ x3, varformula = ~ fitted.values(model.7), 
-       studentize=TRUE, data=Dairy2)
-#oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
-plot(model.7)
-#par(oldpar)
-
-
-boxplot(model.7$residuals, col="lightblue", horizontal = TRUE)
-
-shapiro.test(model.7$residuals)
-
-
-```
-
+In multiple linear regression, one key assumption is that the residuals (errors) should be normally distributed. However, in our case, residuals do not follow a normal distribution.    **COMPLETE THIS CONCLUSION**
 
 
 
