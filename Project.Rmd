@@ -2,7 +2,7 @@
 title: "Multiple Regression Project"
 author: "Kabin Devkota, Nishan Khanal and Udita Bista"
 date: "4/15/2025"
-output: pdf_document
+output: word_document
 ---
 
 
@@ -75,17 +75,20 @@ colnames(mcdonalds)
 # cleaning column names: replace spaces, %, parentheses, etc.
 colnames(mcdonalds) <- make.names(colnames(mcdonalds))
 ```
-Out of these 22 explanatory variables, some of the variables like "category", Total.Fat....Daily.Value.", "Cholesterol....Daily.Value.", etc are redundant.Therefore, we are dropping them from the analysis to avoid multicollinearity and improve model efficiency.
+Out of these 22 explanatory variables, some of the variables like "category", "Total.Fat....Daily.Value.", "Cholesterol....Daily.Value.", etc are either redundant because there already exist other columns that account for those values or irrelevant for prediction of calories in food items.Therefore, we are dropping them from the analysis to avoid multicollinearity and improve model efficiency.
 ```{r}
 # dropping the columns that is irrelevant or redundant for the analysis
 cols_to_drop <- c(
   "Category",
   "Calories.from.Fat",
+  "Saturated.Fat",
+  "Trans.Fat",
   "Total.Fat....Daily.Value.",
   "Saturated.Fat....Daily.Value.",
   "Cholesterol....Daily.Value.",
   "Sodium....Daily.Value.",
   "Carbohydrates....Daily.Value.",
+  "Sugars",
   "Dietary.Fiber....Daily.Value."
 )
 mcdonalds <- mcdonalds[, !(names(mcdonalds) %in% cols_to_drop)]
@@ -159,42 +162,34 @@ cols_to_drop <- c(
 mcdonalds <- mcdonalds[, !(names(mcdonalds) %in% cols_to_drop)]
 
 
-# saving all the column names except "Item"
-col_names <- setdiff(names(mcdonalds), "Item")
+# saving all the column names except "Item" and "Serving Size Oz"
+col_names <- setdiff(names(mcdonalds), c("Item","Serving.Size.Oz"))
 ```
 
 ```{r}
 col_names
 ```
-After the completion of the data preprocessing part, our dataset has been narrowed down to one response variable $calories$ and fourteen explanatory variables:
+After the completion of the data preprocessing part, our data set has been narrowed down to one response variable $calories$ and ten explanatory variables:
 
 1. x1 = $Total Fat$
 
-2. x2 = $Saturated Fat$
+2. x2 = $Cholestrol$
 
-3. x3 = $Trans Fat$
+3. x3 = $Sodium$
 
-4. x4 = $Cholestrol$
+4. x4 = $Carbohydrates$
 
-5. x5 = $Sodium$
+5. x5 = $Dietary Fiber$
 
-6. x6 = $Carbohydrates$
+6. x6 = $Protein$
 
-7. x7 = $Dietary Fiber$
+7. x7 = $Vitamin A$
 
-8. x8 = $Sugars$
+8. x8 = $Vitamin C$ 
 
-9. x9 = $Protein$
+9. x9 = $Calcium$
 
-10. x10 = $Vitamin A$
-
-11. x11 = $Vitamin C$ 
-
-12. x12 = $Calcium$
-
-13. x13 = $Iron$
-
-14. x14 = $Serving.size.oz$
+10. x10 = $Iron$
 
 
 
@@ -210,8 +205,8 @@ name_map <- setNames(new_names, c("Calories", col_names[col_names != "Calories"]
 names(mcdonalds)[names(mcdonalds) %in% names(name_map)] <- name_map[names(mcdonalds)[names(mcdonalds) %in% names(name_map)]]
 
 
-# saving all the column names except "Item"
-col_names <- setdiff(names(mcdonalds), "Item")
+# saving all the column names except "Item" and "Serving Size Oz"
+col_names <- setdiff(names(mcdonalds), c("Item","Serving.Size.Oz"))
 ```
 
 
@@ -245,7 +240,7 @@ $$
  
 ```{r}
 
-model.1 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x12+x13, data=mcdonalds)
+model.1 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10, data=mcdonalds)
 
 summary(model.1)
 
@@ -256,7 +251,7 @@ summary(model.1)
 (Note: This is referred to at the Full Model)
 
 $$
-Y = -0.054 + 8.882 X_1 + 0.357 X_2 + 2.098 X_3 - 0.013 X_4+ \dots - 0.163 X_{13}
+Y = -0.120 + 9.066 X_1 - 0.014 X_2 + 0.002 X_3 + 4.031 X_4+ \dots + 0.922 X_{10}
 $$
 <br>
 
@@ -277,7 +272,7 @@ Ha:  At least one of the explanatory variables is a significant linear predictor
 
 <br>
 
-Test statistic: F* =  4.563e+04
+Test statistic: F* =  6.146e+04
 
 <br>
 
@@ -299,33 +294,33 @@ Since at least one of the independent variables is significant, we do further an
 ### Test for an Individual Predictor in this Model: 
 
 
-Ho:  With x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, and x13 in the model, x12 is not a linear predictor of y
+Ho:  With x1, x2, x3, x4, x5, x6, x7, x8, and x10 in the model, x9 is not a linear predictor of y
 
-Ha:  With x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, and x13 in the model, x12 is a significant linear predictor of y
+Ha:  With x1, x2, x3, x4, x5, x6, x7, x8, and x10 in the model, x9 is a significant linear predictor of y
  
 
 <br>
 
-Test statistic: t* = -0.128
+Test statistic: t* = -0.395
 
 <br>
 
-P-value: 0.89828  
+P-value: 0.69325  
 
 <br>
 
-Conclusion: Fail to reject Ho. There is insufficient evidence to conclude that with x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, and x13 in the model, x12 is not a linear predictor of y
+Conclusion: Fail to reject Ho. There is insufficient evidence to conclude that with x1, x2, x3, x4, x5, x6, x7, x8, and x10 in the model, x9 is not a linear predictor of y
 
 <br>
 
 
-Notice that x12 has the largest p-value and thus is the least significant. We could remove it from the model and rerun the analysis. Then we could test for significance of another independent variable. We could continue this process until only significant variables are left. This method for identifying the best model is referred to as **Backward Selection**.
+In the above model, x9 has the largest p-value and thus is the least significant. We could remove it from the model and rerun the analysis. Then we could test for significance of another independent variable. We could continue this process until only significant variables are left. This method for identifying the best model is referred to as **Backward Selection**.
 
 Some selected output for the **Backward Selection** procedure:
 
 ```{r}
 
-model.2 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x13, data=mcdonalds)
+model.2 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x10, data=mcdonalds)
 
 summary(model.2)
 
@@ -335,7 +330,7 @@ summary(model.2)
 
 ```{r}
 
-model.3 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11, data=mcdonalds)
+model.3 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x10, data=mcdonalds)
 
 summary(model.3)
 
@@ -345,7 +340,7 @@ summary(model.3)
 
 ```{r}
 
-model.4 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10+x11, data=mcdonalds)
+model.4 <- lm(y~x1+x2+x3+x4+x5+x6+x10, data=mcdonalds)
 
 summary(model.4)
 
@@ -353,35 +348,15 @@ summary(model.4)
 
 ```{r}
 
-model.5 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9+x10, data=mcdonalds)
+model.5 <- lm(y~x1+x2+x4+x5+x6+x10, data=mcdonalds)
 
 summary(model.5)
 
 ```
-
-```{r}
-
-model.6 <- lm(y~x1+x2+x3+x4+x6+x7+x8+x9, data=mcdonalds)
-
-summary(model.6)
-
-```
-
-
-```{r}
-
-model.7 <- lm(y~x1+x2+x4+x6+x7+x8+x9, data=mcdonalds)
-
-summary(model.7)
-
-```
-
-
-
 ### Final Model using Backward Selection: 
 
 $$
-Y = -0.049+ 8.872 X_1 + 0.472 X_2 -0.014 X_4 + 4.137 X_6 - 0.909 X_7 -0.167 X_8 + 3.884 X_9
+Y = -0.116 + 9.112 X_1 - 0.015 X_2 + 4.015 X_4 - 0.642 X_5 + 3.822 X_6 + 1.166 X_{10}
 $$
 
 <br>
@@ -396,35 +371,34 @@ $$
 
 ### Prediction: 
 
-For a sample that has a total fat (x1) of 20, a saturated fat (x2) of 11, a cholestrol (x4) of 35, a carbohydrates (x6) of 36, a dietary fiber (x7) of 2 , a sugar (x8) of 3 and a protein (x9) of 20, we predict the calories (y)  to be 406.386. 
+For a sample that has a total fat (x1) of 4, a cholesterol (x2) of 6, a carbohydrate (x4) of 8.2, a dietary fiber (x5) of 0.4, a protein (x6) of 3.4, and a iron (x10) of 0.54, we predict the calories (y)  to be  82.0.
+ 
 
 <br>
 
 ### Estimation: 
 
-For samples that have a total fat (x1) of 20, a saturated fat (x2) of 11, a cholestrol (x4) of 35, a carbohydrates (x6) of 36, a dietary fiber (x7) of 2 , a sugar (x8) of 3 and a protein (x9) of 20, we predict the average calories (y)  to be 406.386. 
+For samples that have a total fat (x1) of 4, a cholesterol (x2) of 6, a carbohydrate (x4) of 8.2, a dietary fiber (x5) of 0.4, a protein (x6) of 3.4, and a iron (x10) of 0.54, we predict the calories (y)  to be  82.0. 
 
 <br>
 
 ### Interpretation of Partial Slopes (B-weights or Coefficients):
 
-For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), as the protein increases by 1, the calories increases by 3.884.
+For a fixed total fat (x1), a fixed cholesterol (x2), a fixed carbohydrates (x4), a fixed dietary fiber (x5), and a fixed protein (x6), as the iron increases by 1, the calories increases by 1.166.
 
-For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed protein (x9), as the sugar increases by 1, the calories decreases by 0.167.
-
-
-For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed protein (x9), and a fixed sugar (x8), as the dietary fiber increases by 1, the calories decreases by 0.909.
+For a fixed total fat (x1), a fixed cholesterol (x2), a fixed carbohydrates (x4), a fixed dietary fiber (x5), and a fixed iron (x10), as the protein increases by 1, the calories increases by 3.822.
 
 
-For a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the carbohydrates increases by 1, the calories increases by 4.137.
+For a fixed total fat (x1), a fixed cholesterol (x2), a fixed carbohydrates (x4), a fixed protein (x6), and a fixed iron (x10), as the dietary fiber increases by 1, the calories decreases by 0.642.
 
 
-For a fixed total fat (x1), a fixed saturated fat (x2), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the cholestrol increases by 1, the calories decreases by 0.014.
-
-For a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the total fat increases by 1, the calories increases by 8.872.
+For a fixed total fat (x1), a fixed cholesterol (x2), a fixed dietary fiber (x5), a fixed protein (x6), and a fixed iron (x10), as the carbohydrates increases by 1, the calories increases by 4.015.
 
 
-For a fixed total fat (x1), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), and a fixed protein (x9) as the saturated fat increases by 1, the calories increases by 0.472.
+For a fixed total fat (x1), a fixed carbohydrates (x4), a fixed dietary fiber (x5), a fixed protein (x6), and a fixed iron (x10), as the cholesterol increases by 1, the calories decreases by 0.015.
+
+For a fixed cholesterol (x2), a fixed carbohydrates (x4), a fixed dietary fiber (x5), a fixed protein (x6) and a fixed iron (x10), as the total fat increases by 1, the calories increases by 9.112.
+
 
 <br>
 
@@ -433,24 +407,23 @@ For a fixed total fat (x1), a fixed cholestrol (x4), a fixed carbohydrates (x6),
 
 ```{r}
 
-confint(model.7, level=0.95)
+confint(model.5, level=0.95)
 
 ```
 
 
-We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed sugar (x8), as the protein increases by 1, the calories increases between 3.795 and 3.973
+We are 95% confident that for a fixed total fat (x1), a fixed cholesterol (x2), a fixed carbohydrates (x4), a fixed dietary fiber (x5), and a fixed protein (x6), as the iron increases by 1, the calories increases between 0.331 and 2.001.
 
-We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), and a fixed protein (x9), as the sugar increases by 1, the calories decreases between -0.249 and -0.086
+We are 95% confident that for a fixed total fat (x1), a fixed cholesterol (x2), a fixed carbohydrates (x4), a fixed dietary fiber (x5), and a fixed iron (x10), as the protein increases by 1, the calories increases between 3.711  and 3.935.
 
-We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), and a fixed sugar (x8), as the dietary fiber increases by 1, the calories increases between -1.463 and -0.357
+We are 95% confident that for a fixed total fat (x1), a fixed cholesterol (x2), a fixed carbohydrates (x4), a fixed protein (x6), and a fixed iron (x10), as the dietary fiber increases by 1, the calories decreases between -1.145  and -0.140.
 
-We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed protein (x9), a fixed dietary fiber (x7), and a fixed sugar (x8), as the carbohydrates increases by 1, the calories increases between 4.067 and 4.207
+We are 95% confident that for a fixed total fat (x1), a fixed cholesterol (x2), a fixed dietary fiber (x5), a fixed protein (x6), and a fixed iron (x10), as the carbohydrates increases by 1, the calories increases between 3.975 and 4.056.
 
-We are 95% confident that for a fixed total fat (x1), a fixed saturated fat (x2), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the cholestrol increases by 1, the calories decreases between -0.023 and -0.004
+We are 95% confident that for a fixed total fat (x1), a fixed carbohydrates (x4), a fixed dietary fiber (x5), a fixed protein (x6), and a fixed iron (x10), as the cholesterol increases by 1, the calories decreases between -0.025 and -0.006.
 
-We are 95% confident that for a fixed total fat (x1), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the saturated fat increases by 1, the calories increases between 0.165 and 0.778
+We are 95% confident that for a fixed cholesterol (x2), a fixed carbohydrates (x4), a fixed dietary fiber (x5), a fixed protein (x6) and a fixed iron (x10), as the total fat increases by 1, the calories increases between 9.015 and 9.209.
 
-We are 95% confident that for a fixed saturated fat (x2), a fixed cholestrol (x4), a fixed carbohydrates (x6), a fixed dietary fiber (x7), a fixed protein (x9), and a fixed sugar (x8), as the total fat increases by 1, the calories increases between 8.713 and 9.031
 
 <br>
 
@@ -470,20 +443,31 @@ This is checking the assumptions that need to be satisfied before it is appropri
 
 ```{r}
 
-bptest(y~x1+x2+x4+x6+x7+x8+x9, varformula = ~ fitted.values(model.7), studentize=TRUE, data=mcdonalds)
+bptest(y~x1+x2+x4+x5+x6+x10, varformula = ~ fitted.values(model.5), studentize=TRUE, data=mcdonalds)
 #oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
-plot(model.7)
+plot(model.5)
 #par(oldpar)
 
 ```
+
+Ho: The variability of the residuals is constant (homoscedasticity)
+
+Ha: The variability of the residuals is not constant (heteroscedasticity)
+
+Test statistic: $\chi^2_{BP}$ =  21.68
+
+P-value: 3.222e-06
+
+Conclusion (at the .05 level): Reject Ho in favor of Ha. There is sufficient evidence to conclude that the variability of the residuals is not constant (heteroscedasticity).
+
 
 ```{r}
 
 # Examination of the distribution of the residuals
 
-boxplot(model.7$residuals, col="lightblue", horizontal = TRUE)
+boxplot(model.5$residuals, col="lightblue", horizontal = TRUE)
 
-shapiro.test(model.7$residuals)
+shapiro.test(model.5$residuals)
 
 ```
 
@@ -492,13 +476,12 @@ Ho: The residuals follow a normal distribution
 
 Ha: The residuals do not follow a normal distribution
  
-Test statistic: W* =  0.94438
+Test statistic: W* =  0.94993
 
-P-value: 2.781e-08
+P-value: 1.066e-07
 
 Conclusion (at the .05 level): Reject Ho in favor of Ha. There is sufficient evidence to conclude that the residuals do not follow a normal distribution.
 
 
 
-In multiple linear regression, one key assumption is that the residuals (errors) should be normally distributed. However, in our case, residuals do not follow a normal distribution. This suggests that our model may not be a good fit for the Macdonald's menu data.
-We could explore alternative regression techniques or include interaction terms in the model to better capture the relationships in the data.
+In multiple linear regression, there are several assumption: the residuals (errors) should be normally distributed and should have constant variance. However, in our case, residuals do not follow a normal distribution and have non-constant variance. This suggests that our model may not be a good fit for the Macdonald's menu data.We could explore alternative regression techniques or include interaction terms in the model to better capture the relationships in the data.
